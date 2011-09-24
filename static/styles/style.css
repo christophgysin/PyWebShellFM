@@ -1,0 +1,9 @@
+#timebar_wrapper {
+  border: 2px solid #ddd;
+  width:200px;
+  height:12px;
+}
+#timebar{
+  background-color:black;
+  height:12px;
+}

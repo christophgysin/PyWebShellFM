@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 #import the web module
 import web
 import socket
@@ -21,17 +23,17 @@ render = web.template.render(template_dir)
 app = web.application(urls, globals(),False)
 
 def process_socket(command,get_return=False):
-  sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   sock.settimeout(3)
   #connect to the socket
-  try:  
-    sock.connect('/home/YOUR_NAME/.shell-fm/unix_file')  
+  try:
+    sock.connect(("localhost", 54311))
     #format and send data
     sock.sendall( command )
   except:
     #probably no socket, behave accordingly
     return "could not connect to socket"
-    
+
   #get some data back
   if get_return:
     try:

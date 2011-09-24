@@ -52,7 +52,7 @@ class TrackInfoHandler(InfoHandler):
 class Application:
 	def __init__(self):
 		#set some vars
-		self.title = "PyWebShellFM"
+		self.title = "last.fm"
 		#this is where we build the ui
 		self.statusPanel = VerticalPanel()
 		self.statusPanel.setID('status_panel')

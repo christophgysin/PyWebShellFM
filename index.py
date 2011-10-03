@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 #import the web module
 import web
 import socket

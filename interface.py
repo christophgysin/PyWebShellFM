@@ -29,7 +29,7 @@ class NullInfoHandler(InfoHandler):
 		self.panel = panel
 
 	def onCompletion(self, text):
-		pass	
+		pass
 
 class ButtonInfoHandler(InfoHandler):
 	def __init__(self, panel,button):
@@ -53,16 +53,23 @@ class Application:
 	def __init__(self):
 		#set some vars
 		self.title = "last.fm"
+
 		#this is where we build the ui
 		self.statusPanel = VerticalPanel()
 		self.statusPanel.setID('status_panel')
-		#make a few Labels to hold artist, track, album info
+
+		#make a few Labels to hold station, artist, track, album info
+		self.stationLabel = Label()
 		self.artistLabel = Label()
 		self.trackLabel = Label()
 		self.albumLabel = Label()
 		self.timeLabel = Label()
 		self.infoTable = FlexTable()
 		i=0
+		self.stationLabel = Label()
+		self.infoTable.setWidget(i,0,Label("Station:") )
+		self.infoTable.setWidget(i,1,self.stationLabel)
+		i+=1
 		self.infoTable.setWidget(i,0,Label("Artist:") )
 		self.infoTable.setWidget(i,1,self.artistLabel)
 		i+=1
@@ -95,27 +102,27 @@ class Application:
 		self.buttonHPanel.add(banButton)
 
 		#control the volume
-		self.volumePanel = VerticalPanel()
+		self.volumePanel = HorizontalPanel()
 		self.volumeLabel = Label("Volume:")
 		self.volumePanel.add(self.volumeLabel)
-		volupButton = Button("volume +", self.clicked_volume_up, 5)
+		volupButton = Button("+", self.clicked_volume_up, 5)
 		self.volumePanel.add(volupButton)
-		voldownButton = Button("volume -", self.clicked_volume_down, 5)
+		voldownButton = Button("-", self.clicked_volume_down, 5)
 		self.volumePanel.add(voldownButton)
-		
-		#make some stuff for station Identification
-		self.stationInfoHPanel = HorizontalPanel()
-		stationText = Label("Station: ")
-		self.stationLabel = Label()
-		self.stationInfoHPanel.add(stationText)
-		self.stationInfoHPanel.add(self.stationLabel)
 		
 		#make buttons and shit to create a new station
 		self.setStationHPanel = HorizontalPanel()
 		self.setStationTypeListBox = ListBox()
 		self.setStationTypeListBox.setVisibleItemCount(0)
-		self.setStationTypeListBox.addItem("Artist","artist")
-		self.setStationTypeListBox.addItem("Tags","globaltags")
+
+		self.setStationTypeListBox.addItem("Similar Artists", "artist/%s/similarartists")
+		self.setStationTypeListBox.addItem("Top Fans", "artist/%s/fans")
+		self.setStationTypeListBox.addItem("Library", "user/%s/library")
+		self.setStationTypeListBox.addItem("Mix", "user/%s/mix")
+		self.setStationTypeListBox.addItem("Recommended", "user/%s/recommended")
+		self.setStationTypeListBox.addItem("Neighbours", "user/%s/neighbours")
+		self.setStationTypeListBox.addItem("Global Tag", "globaltags/%s")
+
 		self.setStationHPanel.add(self.setStationTypeListBox)
 		self.setStationTextBox = TextBox()
 		self.setStationTextBox.setVisibleLength(10)
@@ -123,13 +130,12 @@ class Application:
 		self.setStationHPanel.add(self.setStationTextBox)
 		self.setStationButton = Button("Play", self.clicked_set_station)
 		self.setStationHPanel.add(self.setStationButton)
-		
+
 		#make an error place to display data
 		self.infoHTML = HTML()
 		RootPanel().add(self.statusPanel)
 		RootPanel().add(self.buttonHPanel)
 		RootPanel().add(self.volumePanel)
-		RootPanel().add(self.stationInfoHPanel)
 		RootPanel().add(self.setStationHPanel)
 		RootPanel().add(self.infoHTML)
 		
@@ -141,14 +147,14 @@ class Application:
 		Timer(5000,self.get_track_info)
 
 	def clicked_skip(self):
-		self.skipButton.setEnabled(False)	
+		self.skipButton.setEnabled(False)
 		HTTPRequest().asyncGet("/skip",ButtonInfoHandler(self,self.skipButton) )
 
 	def clicked_volume_down(self):
-		HTTPRequest().asyncGet("/volume/down",NullInfoHandler(self)	)
+		HTTPRequest().asyncGet("/volume/down",NullInfoHandler(self) )
 
 	def clicked_volume_up(self):
-		HTTPRequest().asyncGet("/volume/up",NullInfoHandler(self)	)
+		HTTPRequest().asyncGet("/volume/up",NullInfoHandler(self) )
 
 	def clicked_love(self):
 		HTTPRequest().asyncGet("/love",NullInfoHandler(self) )
@@ -161,14 +167,14 @@ class Application:
 	def clicked_pause(self):
 		HTTPRequest().asyncGet("/pause",NullInfoHandler(self) )
 
-
 	def clicked_set_station(self):
 		type = self.setStationTypeListBox.getSelectedValues()[0]
 		text = self.setStationTextBox.getText().strip()
 		if len(text) > 0 :
 			#clear the text
 			self.setStationTextBox.setText("")
-			HTTPRequest().asyncGet("/station/%s/%s"% (type,text),NullInfoHandler(self) )
+			station = type % text
+			HTTPRequest().asyncGet("/station/%s" % station,NullInfoHandler(self) )
 
 	def set_error(self, content):
 		self.infoHTML.setHTML("<pre>%s</pre>" % content)
@@ -180,7 +186,7 @@ class Application:
 		self.infoHTML.setHTML(text + "<br />" + str(code))
 		
 	def process_track_info(self,text):
-		#explode the text at :: 
+		#explode the text at ::
 		#%a::%t::%l::%d::%R::%s::%v::%r
 		data = text.split("::")
 		artist = data[0]

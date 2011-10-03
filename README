@@ -1,1 +1,4 @@
 python shell-fm web interface
+
+needs pyjamas to compile
+needs web.py to run
